@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4285F4"/>
+      <stop offset="100%" stop-color="#1a73e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#ffffff"/>
+  <rect x="4" y="4" width="92" height="92" rx="20" fill="#f8f9fa" stroke="#dadce0" stroke-width="2"/>
+  
+  <!-- Four Google Color Accent Dots -->
+  <circle cx="28" cy="24" r="5" fill="#4285F4"/>
+  <circle cx="42" cy="24" r="5" fill="#EA4335"/>
+  <circle cx="56" cy="24" r="5" fill="#FBBC05"/>
+  <circle cx="70" cy="24" r="5" fill="#34A853"/>
+
+  <!-- Clean Monogram "IL" -->
+  <text x="32" y="68" font-family="'Google Sans', 'Roboto', sans-serif" font-size="34" font-weight="700" fill="#202124">IL</text>
+  
+  <!-- Subtle lifestyle sun ray / horizon line -->
+  <line x1="26" y1="78" x2="74" y2="78" stroke="#1a73e8" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Imtiaz lifestyle — Resilient Dual Diary & Agenda</title>
+  
+  <!-- Favicon & PWA -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <!-- Google Fonts: Roboto & Google Sans fallbacks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Google Minimalist Design Stylesheet -->
+  <link rel="stylesheet" href="/css/google_theme.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ====================================================================
+         TOP APP BAR (Google Minimalist Navigation & Cloud Sync)
+         ==================================================================== -->
+    <header class="g-header">
+      <!-- Logo & Branding -->
+      <div class="g-logo-group" onclick="window.imtiazApp.setView('dual')">
+        <div class="g-dots">
+          <span class="g-dot dot-b"></span>
+          <span class="g-dot dot-r"></span>
+          <span class="g-dot dot-y"></span>
+          <span class="g-dot dot-g"></span>
+        </div>
+        <div class="g-logo-title">
+          <span>Imtiaz lifestyle</span>
+          <span class="g-logo-subtitle">Dual Diary Agenda</span>
+        </div>
+      </div>
+
+      <!-- Date Navigator -->
+      <div class="g-date-nav">
+        <button class="g-icon-btn" onclick="window.imtiazApp.changeDate(-1)" title="Previous Day">‹</button>
+        <div class="g-date-text" onclick="document.getElementById('datePickerInput').showPicker()">
+          <span id="currentDateText">Today</span>
+          <span class="g-today-chip" onclick="event.stopPropagation(); window.imtiazApp.setDate(new Date().toISOString().substring(0,10))">Today</span>
+        </div>
+        <button class="g-icon-btn" onclick="window.imtiazApp.changeDate(1)" title="Next Day">›</button>
+        <input type="date" id="datePickerInput" style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;">
+      </div>
+
+      <!-- Google Pill Search Bar -->
+      <div class="g-search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="globalSearchInput" class="g-search-input" placeholder="Search diary & 24h agenda...">
+      </div>
+
+      <!-- Desktop View Switcher Pills -->
+      <nav class="g-nav-switcher">
+        <button class="g-tab-btn active" data-view="dual">⚡ Dual View</button>
+        <button class="g-tab-btn" data-view="morning">☀️ 15m Morning</button>
+        <button class="g-tab-btn" data-view="agenda">📅 24h Agenda</button>
+        <button class="g-tab-btn" data-view="diary">📝 Diary</button>
+        <button class="g-tab-btn" data-view="simulator" title="Watch live real-time sync across mobile & web">📱 Multi-Device</button>
+      </nav>
+
+      <!-- Sync Status & Quick Actions -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div id="syncStatusBadge" class="g-sync-status cloud-saved" onclick="window.imtiazApp.openNetworkModal()" title="Click to view Cloud / LAN Sync Details">
+          <span>☁️✓</span>
+          <span>Saved to Cloud</span>
+        </div>
+
+        <button class="g-icon-btn" onclick="window.imtiazApp.openNetworkModal()" title="Connect Mobile Phone (LAN/Wi-Fi) or Cloud">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </button>
+
+        <a href="/api/export" class="g-icon-btn" title="Export Production Backup JSON" download>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </a>
+
+        <button class="g-icon-btn" onclick="window.imtiazApp.resetSampleDay()" title="Reset to standard day template">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         MAIN VIEWPORT (Dynamic Views)
+         ==================================================================== -->
+    <main class="main-viewport">
+
+      <!-- ------------------------------------------------------------------
+           VIEW 1: DUAL VIEW (Unified Diary & 24h Agenda Side by Side)
+           ------------------------------------------------------------------ -->
+      <section id="viewDual" class="view-container active">
+        
+        <!-- Evening Daily Review Banner (Shown at night / dusk) -->
+        <div id="eveningReviewBanner" class="g-card" style="display:none; background:#f6f8fe; border-left:4px solid #1a73e8; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:26px;">🌙</div>
+            <div>
+              <div style="font-size:14px; font-weight:600; color:var(--g-text-primary);">Evening Daily Review & Wind-down</div>
+              <div style="font-size:12.5px; color:var(--g-text-secondary);">Close out today's agenda, review deferred items, and log your evening gratitude.</div>
+            </div>
+          </div>
+          <button class="g-btn-primary" style="font-size:12.5px;" onclick="window.imtiazApp.triggerEveningReview()">Begin Evening Review →</button>
+        </div>
+
+        <!-- Morning Agenda Banner Prompt -->
+        <div class="g-card" style="background:#fcfdfe; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; border-left:4px solid #FBBC05;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:26px;">☀️</div>
+            <div>
+              <div style="font-size:14px; font-weight:600; color:var(--g-text-primary);">15-Minute Morning Kickstart</div>
+              <div style="font-size:12.5px; color:var(--g-text-secondary);">Set today's gratitude, top 3 priorities, and activate your mindset before diving in.</div>
+            </div>
+          </div>
+          <button class="g-btn-outline" style="border-color:#dadce0;" onclick="window.imtiazApp.setView('morning')">Launch 15m Agenda →</button>
+        </div>
+
+        <!-- Dual Columns Grid -->
+        <div class="dual-layout">
+          
+          <!-- Column A: Dual Diary Reflections -->
+          <div class="dual-column">
+            <div class="dual-column-header">
+              <div class="dual-column-title">
+                <span>📝 Diary Reflections</span>
+                <span class="tag-badge" style="background:var(--g-blue-surface); color:var(--g-blue);">Markdown Ready</span>
+              </div>
+              <button class="g-btn-outline" style="padding:4px 12px; font-size:12px;" onclick="window.imtiazApp.openDiaryModal()">+ Write Entry</button>
+            </div>
+            <div id="dualDiaryListContainer" class="diary-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Column B: 24-Hour Agenda Scheduler -->
+          <div class="dual-column">
+            <div class="dual-column-header">
+              <div class="dual-column-title">
+                <span>📅 24-Hour Agenda</span>
+                <span class="progress-label" style="font-size:12px; font-weight:400; color:var(--g-text-secondary);">0 of 0 completed</span>
+              </div>
+              <button class="g-btn-primary" style="padding:4px 14px; font-size:12px;" onclick="window.imtiazApp.openTaskModal()">+ Add Task</button>
+            </div>
+
+            <!-- Progress Meter -->
+            <div class="progress-track" style="margin-bottom:12px;">
+              <div class="progress-fill" style="width: 0%;"></div>
+            </div>
+
+            <!-- Full 24-hour timeline stream -->
+            <div id="dualTimelineContainer" class="timeline-24h">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------------
+           VIEW 2: 15-MINUTE MORNING AGENDA
+           ------------------------------------------------------------------ -->
+      <section id="viewMorning" class="view-container">
+        
+        <div class="morning-hero-card">
+          <div class="morning-header-row">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span id="morningStatusChip" class="tag-badge" style="background:var(--g-yellow-surface); color:#b06000; font-size:12px;">☀️ 15-Min Kickstart</span>
+                <span style="font-size:12px; color:var(--g-text-secondary);">Daily Planning Routine</span>
+              </div>
+              <h1 style="font-size:22px; font-weight:600; margin-top:4px;">15-Minute Morning Agenda</h1>
+              <p style="font-size:13px; color:var(--g-text-secondary); max-width:600px;">
+                Dedicate 15 uninterrupted minutes every morning to align your gratitude, lock in your top 3 non-negotiable priorities, and structure your 24-hour timeline.
+              </p>
+            </div>
+
+            <!-- 15-Minute Countdown Timer Widget -->
+            <div class="morning-timer-widget">
+              <div style="font-size:11px; text-transform:uppercase; color:var(--g-text-secondary); font-weight:600;">Routine Timer</div>
+              <div id="morningTimerDisplay" class="timer-digits">15:00</div>
+              <div class="timer-controls">
+                <button id="startTimerBtn" class="g-btn-primary" style="padding:4px 12px; font-size:12px;">▶ Start</button>
+                <button id="resetTimerBtn" class="g-btn-outline" style="padding:4px 10px; font-size:12px;">↺</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Morning Planning Steps Grid -->
+          <div class="morning-grid">
+
+            <!-- Step 1: Gratitude -->
+            <div class="morning-step-box">
+              <div class="step-header">
+                <div class="step-num-circle">1</div>
+                <span>Morning Gratitude</span>
+              </div>
+              <p style="font-size:12px; color:var(--g-text-secondary);">Three specific things you are grateful for this morning:</p>
+              <input type="text" id="morningG1" class="input-minimal" placeholder="1. What brings you quiet appreciation?">
+              <input type="text" id="morningG2" class="input-minimal" placeholder="2. A person, opportunity, or resource...">
+              <input type="text" id="morningG3" class="input-minimal" placeholder="3. A simple comfort or gift of health...">
+            </div>
+
+            <!-- Step 2: The Top 3 Focus Goals -->
+            <div class="morning-step-box">
+              <div class="step-header">
+                <div class="step-num-circle" style="background:var(--g-green-surface); color:var(--g-green);">2</div>
+                <span>Top 3 Daily Non-Negotiables</span>
+              </div>
+              <p style="font-size:12px; color:var(--g-text-secondary);">What 3 deliverables will make today a victorious success?</p>
+              <input type="text" id="morningF1" class="input-minimal" placeholder="🎯 Priority 1 (Morning Deep Work)">
+              <input type="text" id="morningF2" class="input-minimal" placeholder="🎯 Priority 2 (Key Execution Deliverable)">
+              <input type="text" id="morningF3" class="input-minimal" placeholder="🎯 Priority 3 (Health, Movement, or Learning)">
+            </div>
+
+            <!-- Step 3: Mindset & Vitality -->
+            <div class="morning-step-box">
+              <div class="step-header">
+                <div class="step-num-circle" style="background:var(--g-purple-surface); color:var(--g-purple);">3</div>
+                <span>Vitality & Energy Check</span>
+              </div>
+              <div style="font-size:12px; color:var(--g-text-secondary); margin-bottom:4px;">Daily Hydration Target (8 Glasses):</div>
+              <div id="waterTrackerContainer" class="water-tracker">
+                <!-- 8 water droplets rendered via JS -->
+              </div>
+
+              <div style="font-size:12px; color:var(--g-text-secondary); margin-top:8px;">Energy Level State:</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <span class="tag-badge energy-pill" data-energy="Calm" onclick="document.querySelectorAll('.energy-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active');">Calm</span>
+                <span class="tag-badge energy-pill active" data-energy="High" onclick="document.querySelectorAll('.energy-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active');">High</span>
+                <span class="tag-badge energy-pill" data-energy="Peak Flow" onclick="document.querySelectorAll('.energy-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active');">Peak Flow</span>
+              </div>
+            </div>
+
+            <!-- Step 4: Affirmation & Mindset -->
+            <div class="morning-step-box">
+              <div class="step-header">
+                <div class="step-num-circle" style="background:var(--g-yellow-surface); color:#b06000;">4</div>
+                <span>Daily Intention & Affirmation</span>
+              </div>
+              <p style="font-size:12px; color:var(--g-text-secondary);">Your guiding phrase for mental fortitude:</p>
+              <textarea id="morningAffirmation" class="input-minimal" rows="2" placeholder="I approach each hour with intentionality, clarity, and calm focus."></textarea>
+              
+              <div style="font-size:12px; color:var(--g-text-secondary); margin-top:4px;">Morning Kickstart Notes:</div>
+              <input type="text" id="morningNotes" class="input-minimal" placeholder="Any morning realizations or notes...">
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px; padding-top:16px; border-top:1px solid var(--g-border-subtle); flex-wrap:wrap;">
+            <button class="g-btn-outline" onclick="window.imtiazApp.saveMorningAgenda()">Save Draft</button>
+            <button class="g-btn-primary" onclick="window.imtiazApp.completeMorningRoutine()">
+              ✓ Complete Kickstart & Sync to 24h Agenda + Diary
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ------------------------------------------------------------------
+           VIEW 3: 24-HOUR AGENDA (Dedicated Full Day View)
+           ------------------------------------------------------------------ -->
+      <section id="viewAgenda" class="view-container">
+        
+        <div class="agenda-hero-stats">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:24px;">📅</div>
+            <div>
+              <div style="font-weight:600; font-size:16px;">24-Hour Daily Schedule</div>
+              <div style="font-size:12px; color:var(--g-text-secondary);">Hour-by-hour timeblocking (pending, completed, deferred)</div>
+            </div>
+          </div>
+
+          <div class="progress-container">
+            <span style="font-size:12px; font-weight:500; color:var(--g-text-secondary);">Progress:</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:0%;"></div>
+            </div>
+            <span class="progress-label" style="font-size:12px; font-weight:600; min-width:140px;">0 of 0 completed</span>
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button class="g-btn-outline" style="font-size:12px;" onclick="window.imtiazApp.resetSampleDay()">Reset Template</button>
+            <button class="g-btn-primary" style="font-size:12px;" onclick="window.imtiazApp.openTaskModal()">+ New Task</button>
+          </div>
+        </div>
+
+        <!-- 24-Hour Timeline Stream -->
+        <div id="timeline24hContainer" class="timeline-24h g-card" style="padding:16px 20px;">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ------------------------------------------------------------------
+           VIEW 4: DIARY VIEW (Dedicated Reflections View)
+           ------------------------------------------------------------------ -->
+      <section id="viewDiary" class="view-container">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div>
+            <h2 style="font-size:20px; font-weight:600;">Personal Lifestyle Diary</h2>
+            <p style="font-size:12.5px; color:var(--g-text-secondary);">Rich Markdown reflections, gratitude, and mindset shifts.</p>
+          </div>
+          <button class="g-btn-primary" onclick="window.imtiazApp.openDiaryModal()">+ Write Entry</button>
+        </div>
+
+        <div id="diaryListContainer" class="diary-list">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+      <!-- ------------------------------------------------------------------
+           VIEW 5: MULTI-DEVICE REAL-TIME SYNC SIMULATOR
+           ------------------------------------------------------------------ -->
+      <section id="viewSimulator" class="simulator-container">
+        
+        <!-- Frame 1: Mobile Phone Mockup -->
+        <div class="mobile-phone-frame">
+          <div class="mobile-notch"></div>
+          <div class="frame-bar">
+            <span>📱 Mobile Viewport (iPhone / Pixel)</span>
+            <span style="color:var(--g-green);">● WebSocket Connected</span>
+          </div>
+          <iframe id="mobileFrame" src="/" style="border:none; width:100%; height:100%; flex:1;"></iframe>
+        </div>
+
+        <!-- Frame 2: Desktop Web Mockup -->
+        <div class="desktop-preview-frame">
+          <div class="frame-bar">
+            <span>💻 Desktop Web Viewport</span>
+            <span style="font-size:11px; color:var(--g-blue);">Simultaneous 2-way real-time updates</span>
+          </div>
+          <iframe id="desktopFrame" src="/" style="border:none; width:100%; height:100%; flex:1;"></iframe>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ====================================================================
+         BOTTOM NAVIGATION BAR (Mobile & PWA Layout)
+         ==================================================================== -->
+    <nav class="g-bottom-nav">
+      <button class="bottom-nav-item active" data-view="dual">
+        <div class="nav-icon-pill">⚡</div>
+        <span>Dual</span>
+      </button>
+      <button class="bottom-nav-item" data-view="morning">
+        <div class="nav-icon-pill">☀️</div>
+        <span>Morning 15m</span>
+      </button>
+      <button class="bottom-nav-item" data-view="agenda">
+        <div class="nav-icon-pill">📅</div>
+        <span>24h Agenda</span>
+      </button>
+      <button class="bottom-nav-item" data-view="diary">
+        <div class="nav-icon-pill">📝</div>
+        <span>Diary</span>
+      </button>
+      <button class="bottom-nav-item" data-view="simulator">
+        <div class="nav-icon-pill">📱</div>
+        <span>Sync Sim</span>
+      </button>
+    </nav>
+
+    <!-- ====================================================================
+         FLOATING ACTION BUTTON (FAB) & SPEED DIAL
+         ==================================================================== -->
+    <div class="fab-wrapper">
+      <div id="fabSpeedDial" class="fab-speed-dial">
+        <div class="fab-dial-item" onclick="window.imtiazApp.setView('morning')">
+          <span class="fab-dial-icon">☀️</span>
+          <span>15-Minute Morning Kickstart</span>
+        </div>
+        <div class="fab-dial-item" onclick="window.imtiazApp.openDiaryModal()">
+          <span class="fab-dial-icon">📝</span>
+          <span>Write Diary Reflection</span>
+        </div>
+        <div class="fab-dial-item" onclick="window.imtiazApp.openTaskModal()">
+          <span class="fab-dial-icon">📅</span>
+          <span>Schedule 24-Hour Task</span>
+        </div>
+      </div>
+
+      <button class="g-fab" onclick="window.imtiazApp.toggleFabSpeedDial()" title="Quick Actions">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Action</span>
+      </button>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 1: ADD / EDIT 24-HOUR TASK
+         ==================================================================== -->
+    <div id="taskModal" class="modal-overlay">
+      <div class="g-modal-box">
+        <div class="modal-header">
+          <h3 id="taskModalTitle" class="modal-title">Schedule 24h Task</h3>
+          <button class="g-icon-btn" onclick="window.imtiazApp.closeModal('taskModal')">✕</button>
+        </div>
+
+        <input type="hidden" id="taskInputId">
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Task Title</label>
+          <input type="text" id="taskInputTitle" class="input-minimal" placeholder="e.g. Deep Focus: Core Deliverables">
+        </div>
+
+        <!-- Quick Hour Slot Chips -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:11px; font-weight:600; color:var(--g-text-secondary);">Quick Preset Slots</label>
+          <div class="quick-time-chips">
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('06:00')">06:00 Dawn</span>
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('09:00')">09:00 Deep Work</span>
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('12:00')">12:00 Lunch</span>
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('14:00')">14:00 Execution</span>
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('18:00')">18:00 Exercise</span>
+            <span class="time-chip" onclick="window.imtiazApp.setTaskTimeFromChip('21:00')">21:00 Reflection</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Start Time (24h)</label>
+            <input type="time" id="taskInputSlot" class="input-minimal" value="09:00">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">End Time (Optional)</label>
+            <input type="time" id="taskInputEnd" class="input-minimal" value="10:30">
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Category</label>
+            <select id="taskInputCat" class="input-minimal">
+              <option value="Work">Work</option>
+              <option value="Health">Health</option>
+              <option value="Routine">Routine</option>
+              <option value="Personal">Personal</option>
+              <option value="Evening">Evening</option>
+            </select>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Task Status</label>
+            <select id="taskInputStatus" class="input-minimal">
+              <option value="pending" selected>⚪ Pending</option>
+              <option value="completed">✓ Completed</option>
+              <option value="deferred">↪️ Deferred</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Priority</label>
+            <select id="taskInputPriority" class="input-minimal">
+              <option value="High">High</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Notes & Details</label>
+          <textarea id="taskInputDesc" class="input-minimal" rows="2" placeholder="Action points, location, or checklist notes..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button class="g-btn-outline" onclick="window.imtiazApp.closeModal('taskModal')">Cancel</button>
+          <button class="g-btn-primary" onclick="window.imtiazApp.saveTaskFromModal()">Save & Sync</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 2: ADD / EDIT DIARY REFLECTION WITH MARKDOWN
+         ==================================================================== -->
+    <div id="diaryModal" class="modal-overlay">
+      <div class="g-modal-box">
+        <div class="modal-header">
+          <h3 id="diaryModalTitle" class="modal-title">Write Diary Reflection</h3>
+          <button class="g-icon-btn" onclick="window.imtiazApp.closeModal('diaryModal')">✕</button>
+        </div>
+
+        <input type="hidden" id="diaryInputId">
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Entry Title</label>
+          <input type="text" id="diaryInputTitle" class="input-minimal" placeholder="e.g. Evening Reflection & Daily Review">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Time</label>
+            <input type="time" id="diaryInputTime" class="input-minimal" value="20:00">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Mood State</label>
+            <select id="diaryInputMood" class="input-minimal">
+              <option value="Energized">Energized</option>
+              <option value="Focused">Focused</option>
+              <option value="Calm">Calm</option>
+              <option value="Reflective" selected>Reflective</option>
+              <option value="Tired">Tired</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Markdown Editor / Preview Switcher -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div class="markdown-tabs">
+            <button id="diaryTabEdit" class="markdown-tab-btn active" onclick="window.imtiazApp.switchDiaryTab('edit')">✏️ Edit Markdown</button>
+            <button id="diaryTabPreview" class="markdown-tab-btn" onclick="window.imtiazApp.switchDiaryTab('preview')">👁️ Live Preview</button>
+          </div>
+          <textarea id="diaryInputContent" class="input-minimal" rows="6" placeholder="Write in Markdown (e.g. # Heading, - Bullet, - [ ] Checklist, > Quote)..."></textarea>
+          <div id="diaryPreviewBox" class="markdown-preview" style="display:none;"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Tags (comma separated)</label>
+          <input type="text" id="diaryInputTags" class="input-minimal" placeholder="Lifestyle, Clarity, Habits, Focus">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+          <button class="g-btn-outline" onclick="window.imtiazApp.closeModal('diaryModal')">Cancel</button>
+          <button class="g-btn-primary" onclick="window.imtiazApp.saveDiaryFromModal()">Save Reflection</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 3: MOBILE & LAN NETWORK CONNECTION
+         ==================================================================== -->
+    <div id="networkModal" class="modal-overlay">
+      <div class="g-modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">Cross-Device & Cloud Sync</h3>
+          <button class="g-icon-btn" onclick="window.imtiazApp.closeModal('networkModal')">✕</button>
+        </div>
+        <p style="font-size:13px; color:var(--g-text-secondary);">
+          Connect any mobile phone or browser to synchronize live in real-time.
+        </p>
+        <div id="networkUrlsContainer" style="margin:12px 0;"></div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="g-btn-primary" onclick="window.imtiazApp.closeModal('networkModal')">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 4: CLOUD STORAGE CONFIGURATION (Cloudflare / Supabase)
+         ==================================================================== -->
+    <div id="cloudModal" class="modal-overlay">
+      <div class="g-modal-box">
+        <div class="modal-header">
+          <h3 class="modal-title">Cloud Storage Provider</h3>
+          <button class="g-icon-btn" onclick="window.imtiazApp.closeModal('cloudModal')">✕</button>
+        </div>
+        <p style="font-size:13px; color:var(--g-text-secondary);">
+          Configure persistent cloud backup targets. Changes synchronize automatically.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-size:12px; font-weight:600; color:var(--g-text-secondary);">Active Cloud Provider</label>
+          <select id="cloudProviderSelect" class="input-minimal">
+            <option value="local">Local Resilient SQLite (WAL mode)</option>
+            <option value="cloudflare_d1">Cloudflare Workers D1</option>
+            <option value="supabase">Supabase PostgREST</option>
+          </select>
+        </div>
+
+        <div id="cloudTestResult" style="font-size:12.5px; padding:8px 12px; background:var(--g-surface); border-radius:6px; border:1px solid var(--g-border);">
+          Local SQLite is active with WAL mode and IndexedDB offline cache.
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <button class="g-btn-outline" onclick="window.imtiazApp.testCloudConnection()">Test Connection</button>
+          <button class="g-btn-primary" onclick="window.imtiazApp.closeModal('cloudModal')">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         TOAST FEEDBACK MESSAGE
+         ==================================================================== -->
+    <div id="gToast" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#202124; color:#ffffff; padding:10px 20px; border-radius:var(--radius-pill); font-size:13px; font-weight:500; display:none; opacity:0; transition:opacity 0.2s; z-index:999; box-shadow:0 3px 10px rgba(0,0,0,0.3);">
+      Sync updated
+    </div>
+
+  </div>
+
+  <!-- Service Worker Registration for PWA Offline Support -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.log('SW registration note:', err);
+        });
+      });
+    }
+  </script>
+
+  <!-- Client-Side IndexedDB Storage Engine -->
+  <script src="/js/offline_storage.js"></script>
+
+  <!-- Application Script -->
+  <script src="/js/app.js"></script>
+</body>
+</html>

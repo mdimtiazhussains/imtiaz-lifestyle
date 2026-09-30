@@ -1,0 +1,17 @@
+{
+  "name": "Imtiaz lifestyle",
+  "short_name": "Imtiaz",
+  "description": "Dual diary agenda application with 15-minute morning kickstart and 24-hour daily planning in real-time sync.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
